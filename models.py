@@ -1,4 +1,4 @@
-from app import db, bcrypt
+from extensions import db, bcrypt
 
 
 class User(db.Model):
@@ -17,5 +17,4 @@ class User(db.Model):
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.String(100), db.ForeignKey(
-        'user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

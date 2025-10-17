@@ -1,18 +1,21 @@
+import os
+
 from models import User, Note
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
+from extensions import db, bcrypt, jwt
 from routes.auth_routes import auth_bp
 from routes.note_routes import note_bp
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/notes.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'instance', 'notes.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['JWT_SECRET_KEY'] = 'secrecypeak'
 
-db = SQLAlchemy(app)
-
+db.init_app(app)
+bcrypt.init_app(app)
+jwt.init_app(app)
 
 with app.app_context():
     db.create_all()
