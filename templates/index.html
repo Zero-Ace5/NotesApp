@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Notes App - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Notes App</h1>
+
+        <div id="forms">
+            <div id="registerForm">
+                <h2>Register</h2>
+                <input type="text" id="regUsername" placeholder="Username">
+                <input type="password" id="regPassword" placeholder="Password">
+                <button onclick="register()">Register</button>
+            </div>
+
+            <div id="loginForm">
+                <h2>Login</h2>
+                <input type="text" id="logUsername" placeholder="Username">
+                <input type="password" id="logPassword" placeholder="Password">
+                <button onclick="login()">Login</button>
+            </div>
+        </div>
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        async function register() {
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+            const res = await fetch("/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            document.getElementById("message").innerText = data.message;
+        }
+
+        async function login() {
+            const username = document.getElementById("logUsername").value;
+            const password = document.getElementById("logPassword").value;
+            const res = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (res.ok && data.token) {
+                localStorage.setItem("token", data.token);
+                window.location.href = "/notes";
+            } else {
+                document.getElementById("message").innerText = data.message;
+            }
+        }
+    </script>
+</body>
+
+</html>

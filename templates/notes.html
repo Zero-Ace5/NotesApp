@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Your Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Your Notes</h1>
+        <textarea id="noteContent" placeholder="Write a new note..."></textarea>
+        <button onclick="addNote()">Add Note</button>
+        <button onclick="logout()">Logout</button>
+
+        <div id="notesList"></div>
+    </div>
+
+    <script>
+        async function loadNotes() {
+            const res = await fetch("/notes/", {
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("token")
+                }
+            });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+            const notes = await res.json();
+            const list = document.getElementById("notesList");
+            list.innerHTML = "";
+            notes.forEach(n => {
+                const div = document.createElement("div");
+                div.className = "note";
+                div.textContent = n.content;
+                list.appendChild(div);
+            });
+        }
+
+        async function addNote() {
+            const content = document.getElementById("noteContent").value;
+            await fetch("/notes/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + localStorage.getItem("token")
+                },
+                body: JSON.stringify({ content })
+            });
+            document.getElementById("noteContent").value = "";
+            loadNotes();
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "/";
+        }
+
+        loadNotes();
+    </script>
+</body>
+
+</html>
