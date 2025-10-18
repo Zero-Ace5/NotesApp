@@ -13,34 +13,60 @@
         <textarea id="noteContent" placeholder="Write a new note..."></textarea>
         <button onclick="addNote()">Add Note</button>
         <button onclick="logout()">Logout</button>
-
-        <div id="notesList"></div>
     </div>
+    <ul id="notesList"></ul>
 
     <script>
+        // Consolidated all JS code into one script block
+
         async function loadNotes() {
-            const res = await fetch("/notes/", {
-                headers: {
-                    "Authorization": "Bearer " + localStorage.getItem("token")
-                }
-            });
-            if (res.status === 401) {
-                logout();
+            // Get the token from localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Optional: Redirect to login if no token is found
+                // window.location.href = "/"; 
+                console.error("No token found. Please log in.");
                 return;
             }
+
+            const res = await fetch('/notes/', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            // Handle non-200 responses
+            if (!res.ok) {
+                console.error("Failed to fetch notes:", res.status, res.statusText);
+                // Optional: Redirect to login on authentication failure
+                // if (res.status === 401) window.location.href = "/";
+                return;
+            }
+
             const notes = await res.json();
-            const list = document.getElementById("notesList");
-            list.innerHTML = "";
-            notes.forEach(n => {
-                const div = document.createElement("div");
-                div.className = "note";
-                div.textContent = n.content;
-                list.appendChild(div);
+            const list = document.getElementById('notesList');
+            list.innerHTML = ''; // Clear existing notes
+
+            notes.forEach(note => {
+                const li = document.createElement('li');
+                li.textContent = note.content + " ";
+
+                const delBtn = document.createElement('button');
+                delBtn.textContent = "❌ Delete";
+                delBtn.onclick = async () => {
+                    await fetch(`/notes/${note.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    loadNotes(); // Reload notes after deletion
+                };
+                li.appendChild(delBtn);
+                list.appendChild(li);
             });
         }
 
         async function addNote() {
             const content = document.getElementById("noteContent").value;
+            if (!content.trim()) return; // Prevent adding empty notes
+
             await fetch("/notes/", {
                 method: "POST",
                 headers: {
@@ -49,15 +75,17 @@
                 },
                 body: JSON.stringify({ content })
             });
-            document.getElementById("noteContent").value = "";
-            loadNotes();
+
+            document.getElementById("noteContent").value = ""; // Clear textarea
+            loadNotes(); // Reload notes to show the new one
         }
 
         function logout() {
             localStorage.removeItem("token");
-            window.location.href = "/";
+            window.location.href = "/"; // Redirect to the root/login page
         }
 
+        // Initial call to load notes when the page loads
         loadNotes();
     </script>
 </body>
