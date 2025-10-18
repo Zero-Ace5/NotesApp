@@ -10,7 +10,7 @@ note_bp = Blueprint('notes', __name__)
 @jwt_required()
 def add_note():
     data = request.get_json()
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     note = Note(content=data['content'], user_id=user_id)
     db.session.add(note)
     db.session.commit()
